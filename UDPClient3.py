@@ -8,8 +8,11 @@ import sys
 serverName = sys.argv[1]
 serverPort = int(sys.argv[2])
 
+# AF_INET MEANS IP version 4 or IPv4 
+# SOCK_DGRAM MEANS WE ARE USING UDP
 clientSocket = socket(AF_INET, SOCK_DGRAM)
 
+# input is what youre sending to the client
 message = input("Please type Subscribe\n")
 
 clientSocket.sendto(message.encode(),(serverName, serverPort))

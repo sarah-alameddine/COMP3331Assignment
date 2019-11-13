@@ -37,7 +37,7 @@ def recv_handler():
                 #store client information (IP and Port No) in list
                 clients.append(clientAddress)
                 serverMessage="Subscription successfull"
-            elif(message=='Unsubscribe'):
+            elif(message =='Unsubscribe'):
                 #check if client already subscribed or not
                 if(clientAddress in clients):
                     clients.remove(clientAddress)
@@ -73,6 +73,7 @@ def send_handler():
         #sleep for UPDATE_INTERVAL
         time.sleep(UPDATE_INTERVAL)
 
+######################## MAIN #################################
 #we will use two sockets, one for sending and one for receiving
 clientSocket = socket(AF_INET, SOCK_DGRAM)
 serverSocket = socket(AF_INET, SOCK_DGRAM)

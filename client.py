@@ -2,16 +2,14 @@ import socket
 import time
 import sys
 from threading import Timer
-flag = True
+from threading import Thread
 
 def timeout_client():
     print('No input detected - Connection has been closed by server')
+    s.close()
     sys.exit(0)
 
-if __name__ == "__main__":
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect((socket.gethostname(), 29025))
-
+def run():
     while True:
         msg_recieved = s.recv(1024).decode()
         print(msg_recieved)
@@ -19,6 +17,7 @@ if __name__ == "__main__":
         if str(msg_recieved) == "<BREAK>":
             msg_recieved = ''
             print("Connection has been closed by server")
+            s.close()
             sys.exit(0)
 
         # Implements a timeout so if a user isnt active after a period of time logs them out
@@ -26,16 +25,21 @@ if __name__ == "__main__":
         # if t is cancelled then call the timeout_client function
         t = Timer(timeout, timeout_client,)
         t.start()
-        prompt = "You have %d seconds to type else you will be disconnected from server\n" % timeout
+        #prompt = "You have %d seconds to type else you will be disconnected from server\n" % timeout
 
-        msg_sent = input(prompt)
+        msg_sent = input()
         t.cancel()
         s.send(msg_sent.encode())
 
+    s.close()
     sys.exit(0)
 
 
-
+if __name__ == "__main__":
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.connect((socket.gethostname(), 27645))
+    receive_thread = Thread(target=run)
+    receive_thread.start()
 
 
 #     import socket

@@ -1,11 +1,10 @@
 import socket
 #from _thread import *
-import threading
+from threading import Thread
 import time
 
 userDict = {} # Stores all the usernames & passwords 
 # A header will store the length of the messeges sent
-client = {}
 
 client_failed_attemp = {}
 
@@ -20,13 +19,21 @@ client_failed_attemp = {}
 # print(end - start)
 
 def run():
-	clientsocket, address = s.accept()
+
 	while True:
 		#TODO ADD TO THE LIST OF CLIENT
-		clientsocket.send(str.encode('Please enter username'))
+		#clientsocket.send(str.encode('Please enter username'))
 		#userInput = clientsocket.recv(1024).decode()
-		loginUser(clientsocket,address)
+		clientsocket, address = s.accept()
 
+		###################
+        #client, client_address = SERVER.accept()
+		print("%s:%s has connected." % address)
+		clientsocket.send(str.encode('Please enter username'))
+		addresses[clientsocket] = address
+		Thread(target=loginUser, args=(clientsocket, address,)).start()
+
+def presence():
 
 def loginUser(clientsocket, address ):
 	# clientsocket, address = s.accept()
@@ -37,11 +44,15 @@ def loginUser(clientsocket, address ):
 
 	while True:
 		userInput = clientsocket.recv(1024).decode()
-
+		start = time.time()
+		
 		#if no messages by client 
 		if not userInput:
-			print('{} connection closed' .format(address))
-			break
+			print("NO USER INPUT DETECTED")
+			end = time.time()
+			if (end - start ) > 10:
+				error = "<BREAK>"
+				clientsocket.send(error.encode())
 
 		############ CHECK IF USER BLOCKED FOR UNSECC ATTEMPTS #################
 		# If a user is in the failed_attemp dictionary and
@@ -52,7 +63,8 @@ def loginUser(clientsocket, address ):
 			if result < 60:
 				data = "Your account is blocked due to multiple login failures. Please try again later"
 				clientsocket.send(data.encode())
-				sys.exit(0)
+				error = "<BREAK>"
+				clientsocket.send(error.encode())
 			# Else remove them from list and continue
 			else :
 				client_failed_attemp.pop(str(userInput))
@@ -93,8 +105,8 @@ def loginUser(clientsocket, address ):
 				# Record the user and begin timer
 				start = time.time()
 				client_failed_attemp[str(userInput)] = start
-				clientsocket.close()
-
+				error = "<BREAK>"
+				clientsocket.send(error.encode())
 		# else if username not correct
 		else:
 			askUserAgain = "Please enter valid Username:"
@@ -103,14 +115,15 @@ def loginUser(clientsocket, address ):
 			#userInput = clientsocket.recv(1024).decode()
 
 	print("EVERYTHING IS WORKING SO FARR")
-	clientsocket.close()
-		
+
 		
 ######################## MAIN #################################
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.bind((socket.gethostname(), 22288))
-s.listen(5)
-
+s.bind((socket.gethostname(), 29025))
+#s.listen(5)
+threads = []
+clients = {}
+addresses = {}
 # Open the credential.txt file to store usernames and passwords in dictionary
 # Stores the left column as users (keys) and the right colum as passwords(value)
 with open("Credentials.txt") as credFile:
@@ -118,11 +131,18 @@ with open("Credentials.txt") as credFile:
        (key, val) = line.split()
        userDict[key] = val
 
-while True:
-	# print("connection from has been established")
-	# recv_thread=threading.Thread(name="RecvHandler", target=run)
-	# recv_thread.daemon=True
-	# recv_thread.start()
-	run()
-
+if __name__ == "__main__":
+	s.listen(4) 
+	print ("Multithreaded Python server : Waiting for connections from TCP clients...")
+	ACCEPT_THREAD = Thread(target=run)
+	ACCEPT_THREAD.start()
+	ACCEPT_THREAD.join()
+	s.close()
+# 	(conn, (ip,port)) = s.accept() 
+# 	newthread = run() 
+# 	newthread.start() 
+# 	threads.append(newthread) 
+ 
+# for t in threads: 
+#     t.join() 
 
